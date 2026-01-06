@@ -1,0 +1,11 @@
+mujoco
+torch
+numpy
+matplotlib
+imageio
+imageio-ffmpeg
+tqdm
+robot_descriptions
+streamlit
+plotly
+altair
