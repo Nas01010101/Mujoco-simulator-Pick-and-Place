@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# MuJoCo logs
+MUJOCO_LOG.TXT
+
+# Model checkpoints (keep in repo for demo, but ignore large ones)
+# Uncomment to ignore all model files:
+# ml/*.pth
+
+# Data (keep demos for reproducibility)
+# ml/data/
+
+# Streamlit
+.streamlit/
+
+# Misc
+*.log
+*.tmp
+.env
