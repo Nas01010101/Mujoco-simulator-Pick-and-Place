@@ -29,19 +29,30 @@ def evaluate_policy(model_path="ml/bc_policy.pth",
     
     # Load model
     print(f"Loading model from {model_path}...")
-    checkpoint = torch.load(model_path, map_location=device)
+    checkpoint = torch.load(model_path, map_location=device, weights_only=False)
     
-    model = BCPolicy(
-        obs_dim=checkpoint['obs_dim'],
-        action_dim=checkpoint['action_dim'],
-        hidden_size=checkpoint['hidden_size']
-    )
-    model.load_state_dict(checkpoint['model_state_dict'])
+    # Handle both checkpoint dict and raw state_dict formats
+    if isinstance(checkpoint, dict) and 'model_state_dict' in checkpoint:
+        # New format with metadata
+        model = BCPolicy(
+            obs_dim=checkpoint['obs_dim'],
+            action_dim=checkpoint['action_dim'],
+            hidden_size=checkpoint['hidden_size']
+        )
+        model.load_state_dict(checkpoint['model_state_dict'])
+        stats_path = checkpoint.get('stats_path', 'ml/data/norm_stats.pkl')
+    else:
+        # Legacy format: raw state_dict - infer hidden size from weights
+        state_dict = checkpoint
+        hidden_size = state_dict['network.0.weight'].shape[0]
+        model = BCPolicy(obs_dim=7, action_dim=4, hidden_size=hidden_size)
+        model.load_state_dict(state_dict)
+        stats_path = 'ml/data/norm_stats.pkl'
+    
     model = model.to(device)
     model.eval()
     
     # Load normalization stats
-    stats_path = checkpoint['stats_path']
     if os.path.exists(stats_path):
         with open(stats_path, 'rb') as f:
             stats = pickle.load(f)
@@ -92,18 +103,31 @@ def evaluate_policy(model_path="ml/bc_policy.pth",
             obs = env.step(action)
             steps += 1
         
-        # Check success: cube near bin (bin at [0.35, 0.0, 0.35])
+        # Check success: cube must be INSIDE the bin
+        # Bin is at (0.2, -0.1, 0.35), floor at z~0.35, walls to z~0.39
+        # Cube is "inside" if: XY within bin bounds AND z > bin floor
         cube_pos = obs[3:6]
-        bin_pos = env.box_pos  # [0.35, 0.0, 0.35]
-        dist_to_bin = np.linalg.norm(cube_pos[:2] - bin_pos[:2])
-        success = dist_to_bin < 0.1
+        bin_xy = np.array([0.2, -0.1])  # env.box_pos[:2]
+        bin_floor_z = 0.35
+        
+        dist_xy = np.linalg.norm(cube_pos[:2] - bin_xy)
+        inside_xy = dist_xy < 0.06  # Bin inner radius ~0.05
+        above_floor = cube_pos[2] > bin_floor_z
+        
+        success = inside_xy and above_floor
         
         successes.append(success)
         episode_lengths.append(steps)
         
         if verbose:
             status = "SUCCESS" if success else "FAIL"
-            print(f"Episode {episode+1}/{num_episodes}: {status} (steps={steps}, cube_pos={cube_pos})")
+            reason = ""
+            if not success:
+                if not inside_xy:
+                    reason = f" (cube xy dist={dist_xy:.3f}, need <0.06)"
+                elif not above_floor:
+                    reason = f" (cube z={cube_pos[2]:.3f}, need >0.35)"
+            print(f"Episode {episode+1}/{num_episodes}: {status}{reason}")
     
     # Compute statistics
     success_rate = np.mean(successes)
