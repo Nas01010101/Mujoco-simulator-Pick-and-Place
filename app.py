@@ -64,7 +64,6 @@ if page == "Overview":
     
     st.markdown(f"""
     <div class="metric-row">
-        <div class="metric"><div class="metric-value">{data['success_rate']*100:.0f}%</div><div class="metric-label">Success Rate</div></div>
         <div class="metric"><div class="metric-value">{data['num_demos']}</div><div class="metric-label">Expert Demos</div></div>
         <div class="metric"><div class="metric-value">{data['final_loss']:.3f}</div><div class="metric-label">Final Loss</div></div>
         <div class="metric"><div class="metric-value">4</div><div class="metric-label">Algorithms</div></div>
@@ -105,6 +104,15 @@ elif page == "Train":
         num_epochs = st.slider("Epochs", min_value=10, max_value=200, value=50, step=10)
         hidden_size = st.select_slider("Hidden Size", options=[64, 128, 256, 512], value=256)
     
+    # Algorithm descriptions
+    algo_descriptions = {
+        "Behavior Cloning": "**Supervised Learning** — Trains a neural network to directly map observations to actions by minimizing MSE loss against expert demonstrations. Simple and fast, but may suffer from distribution shift where small errors compound over time.",
+        "DAgger": "**Interactive Learning** — Dataset Aggregation iteratively improves the policy by rolling out the current policy, querying the expert for corrections at each state, and aggregating this data. Reduces distribution shift by training on states the policy actually visits.",
+        "GAIL": "**Adversarial Learning** — Generative Adversarial Imitation Learning uses a discriminator to distinguish expert from policy behavior. The policy learns to fool the discriminator, implicitly learning a reward function from demonstrations.",
+        "Diffusion Policy": "**Generative Modeling** — Uses denoising diffusion to model the action distribution. Adds noise to expert actions during training, then learns to denoise. At inference, iteratively denoises random noise to produce actions. Captures multi-modal action distributions."
+    }
+    st.markdown(f'<div class="card"><p>{algo_descriptions[algorithm]}</p></div>', unsafe_allow_html=True)
+    
     if st.button("Start Training", type="primary", use_container_width=True):
         st.subheader("Training Progress")
         progress_bar = st.progress(0)
@@ -141,7 +149,7 @@ elif page == "Train":
                                             mode='lines', line=dict(color='#2563eb', width=2)))
                     fig.update_layout(xaxis_title='Epoch', yaxis_title='Loss', height=300,
                                      margin=dict(l=40, r=20, t=20, b=40))
-                    chart_placeholder.plotly_chart(fig, use_container_width=True)
+                    chart_placeholder.plotly_chart(fig, use_container_width=True, key=f"training_chart_{update.get('epoch', 0)}")
                 
                 if update.get('done'):
                     st.success(f"Training complete. Model saved.")
@@ -161,14 +169,7 @@ elif page == "Compare":
     st.table(comparison)
     
     st.subheader("Success Rate")
-    fig = go.Figure()
-    fig.add_trace(go.Bar(
-        x=['Behavior Cloning', 'DAgger', 'GAIL', 'Diffusion Policy'],
-        y=[96, 92, 85, 90],
-        marker_color=['#2563eb', '#10b981', '#8b5cf6', '#f59e0b']
-    ))
-    fig.update_layout(yaxis_title='Success Rate (%)', height=300, margin=dict(l=40, r=20, t=20, b=40))
-    st.plotly_chart(fig, use_container_width=True)
+    st.info("Run `python ml/eval.py` to measure actual success rates. Results vary based on training.")
 
 # ============== RESULTS ==============
 elif page == "Results":
@@ -176,7 +177,6 @@ elif page == "Results":
     
     st.markdown(f"""
     <div class="metric-row">
-        <div class="metric"><div class="metric-value">{data['success_rate']*100:.0f}%</div><div class="metric-label">Success Rate</div></div>
         <div class="metric"><div class="metric-value">50</div><div class="metric-label">Test Episodes</div></div>
         <div class="metric"><div class="metric-value">{data['num_transitions']:,}</div><div class="metric-label">Samples</div></div>
     </div>

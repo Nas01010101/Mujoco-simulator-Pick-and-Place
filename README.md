@@ -1,6 +1,6 @@
 # Robot Pick-and-Place: Imitation Learning
 
-A complete imitation learning pipeline for robot manipulation, with interactive training UI and 4 algorithms.
+A learning project exploring imitation learning for robot manipulation using MuJoCo simulation.
 
 ## Quick Start
 
@@ -31,10 +31,19 @@ Open http://localhost:8501
 
 | Algorithm | Description |
 |-----------|-------------|
-| Behavior Cloning | Supervised learning |
+| Behavior Cloning | Supervised learning from demonstrations |
 | DAgger | Interactive expert corrections |
 | GAIL | Adversarial reward learning |
-| Diffusion Policy | Denoising diffusion |
+| Diffusion Policy | Denoising diffusion for actions |
+
+## Limitations
+
+This is an **experimental learning project**, not production-ready code:
+
+- **Success rates vary significantly** depending on hyperparameters, random seeds, and number of demos.
+- The pick-and-place task is simplified (magnetic gripper, fixed bin position).
+- Policies may fail to grasp, drop the cube, or miss the bin entirely.
+- Run `python ml/eval.py` to measure actual performance on your trained models.
 
 ## License
 

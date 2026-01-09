@@ -45,3 +45,6 @@ MUJOCO_LOG.TXT
 *.log
 *.tmp
 .env
+
+# Tutorial (Local only)
+tutorial/

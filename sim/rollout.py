@@ -111,11 +111,15 @@ def rollout_policy(model_path="ml/bc_policy.pth",
             obs = env.step(action)
             steps += 1
         
-        # Check success: cube near bin
+        # Check success: cube must be INSIDE the bin
         cube_pos = obs[3:6]
-        bin_pos = env.box_pos
-        dist_to_bin = np.linalg.norm(cube_pos[:2] - bin_pos[:2])
-        success = dist_to_bin < 0.1
+        bin_xy = np.array([0.2, -0.1])
+        bin_floor_z = 0.35
+        
+        dist_xy = np.linalg.norm(cube_pos[:2] - bin_xy)
+        inside_xy = dist_xy < 0.06
+        above_floor = cube_pos[2] > bin_floor_z
+        success = inside_xy and above_floor
         status = "success" if success else "fail"
         
         # Save video
