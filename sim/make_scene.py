@@ -174,8 +174,9 @@ def build_scene_xml():
             <site name="bin_site" pos="0 0 0.05" size="0.008"/>
         </body>
         
-        <camera name="main_cam" pos="0.8 -0.5 0.8" xyaxes="0.6 0.8 0 -0.35 0.25 0.9"/>
+        <camera name="main_cam" pos="0.6 -0.6 0.7" xyaxes="0.7 0.7 0 -0.3 0.3 0.9"/>
         <camera name="front_cam" pos="0.35 -0.9 0.5" xyaxes="1 0 0 0 0.5 0.87"/>
+        <camera name="overview_cam" pos="0.9 -0.3 0.9" xyaxes="0.3 0.95 0 -0.4 0.15 0.9"/>
     </worldbody>
     
     <!-- Magnetic grip for cube -->
