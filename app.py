@@ -1,6 +1,6 @@
 """
 Robot Pick-and-Place: Imitation Learning Demo
-Clean, minimal Streamlit interface for training and comparing IL algorithms.
+A clean Streamlit interface for training and comparing IL algorithms.
 """
 import streamlit as st
 import plotly.graph_objects as go
@@ -16,24 +16,84 @@ st.set_page_config(
     layout="wide"
 )
 
-# Minimal styling
+# Modern styling
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    
     * { font-family: 'Inter', sans-serif; }
-    .stApp { background: #fff; }
-    h1, h2, h3 { color: #111; font-weight: 600; }
-    .section { margin: 2rem 0; padding-bottom: 1rem; border-bottom: 1px solid #eee; }
-    .metric-row { display: flex; gap: 1rem; margin: 1.5rem 0; }
-    .metric { background: #f8f9fa; padding: 1.25rem; border-radius: 6px; text-align: center; flex: 1; }
-    .metric-value { font-size: 1.75rem; font-weight: 600; color: #2563eb; }
-    .metric-label { font-size: 0.8rem; color: #666; text-transform: uppercase; margin-top: 0.25rem; }
-    .card { background: #f8f9fa; padding: 1.25rem; border-radius: 6px; margin: 0.75rem 0; }
-    .card h4 { margin: 0 0 0.5rem 0; font-size: 1rem; }
-    .card p { margin: 0; color: #555; font-size: 0.9rem; line-height: 1.5; }
+    .stApp { background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%); }
+    
+    h1 { color: #1a1a2e; font-weight: 700; }
+    h2, h3 { color: #16213e; font-weight: 600; }
+    
+    .hero-title { 
+        font-size: 2.5rem; 
+        font-weight: 700; 
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 0.5rem;
+    }
+    .hero-subtitle { color: #666; font-size: 1.1rem; margin-bottom: 2rem; }
+    
+    .metric-row { display: flex; gap: 1.5rem; margin: 2rem 0; flex-wrap: wrap; }
+    .metric { 
+        background: white; 
+        padding: 1.5rem 2rem; 
+        border-radius: 12px; 
+        text-align: center; 
+        flex: 1; 
+        min-width: 140px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s;
+    }
+    .metric:hover { transform: translateY(-2px); }
+    .metric-value { font-size: 2rem; font-weight: 700; color: #667eea; }
+    .metric-label { font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 0.5rem; }
+    
+    .algo-card { 
+        background: white; 
+        padding: 1.5rem; 
+        border-radius: 12px; 
+        margin: 0.5rem 0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        border-left: 4px solid;
+        transition: transform 0.2s;
+    }
+    .algo-card:hover { transform: translateX(4px); }
+    .algo-card.bc { border-color: #667eea; }
+    .algo-card.dagger { border-color: #10b981; }
+    .algo-card.gail { border-color: #8b5cf6; }
+    .algo-card.diffusion { border-color: #f59e0b; }
+    
+    .algo-card h4 { margin: 0 0 0.5rem 0; font-size: 1rem; color: #1a1a2e; }
+    .algo-card p { margin: 0; color: #666; font-size: 0.85rem; line-height: 1.5; }
+    
+    .section-header { 
+        font-size: 1.25rem; 
+        font-weight: 600; 
+        color: #1a1a2e; 
+        margin: 2rem 0 1rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
     #MainMenu, footer, header { visibility: hidden; }
     .stDeployButton { display: none; }
-    [data-testid="stSidebar"] { background: #fafafa; }
+    [data-testid="stSidebar"] { background: #fafbfc; }
+    
+    .limitations-section {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 2rem;
+        margin-top: 2rem;
+    }
+    .limitations-section h4 { color: #2d3748; margin-bottom: 1rem; }
+    .limitations-section p { color: #4a5568; font-size: 0.95rem; line-height: 1.6; margin-bottom: 1rem; }
+    .limitations-section li { color: #4a5568; font-size: 0.95rem; line-height: 1.6; margin-bottom: 0.5rem; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -47,48 +107,83 @@ def load_data():
             'epochs': list(range(1, 201)),
             'loss': [0.3 * (0.95 ** i) + 0.05 for i in range(200)],
             'final_loss': 0.11, 'num_demos': 100, 'num_transitions': 15000,
-            'success_rate': 0.96, 'learning_rate': 0.0005, 'batch_size': 64
+            'learning_rate': 0.0005, 'batch_size': 64
         }
 
 
 # Sidebar
-st.sidebar.markdown("## Navigation")
+st.sidebar.markdown("### Navigation")
 page = st.sidebar.radio("", ["Overview", "Train", "Compare", "Results", "About"], label_visibility="collapsed")
 
 data = load_data()
 
 # ============== OVERVIEW ==============
 if page == "Overview":
-    st.title("Robot Pick-and-Place")
-    st.markdown("Teaching a UR5e robot to manipulate objects using imitation learning.")
+    st.markdown('<p class="hero-title">Robot Pick-and-Place</p>', unsafe_allow_html=True)
+    st.markdown('<p class="hero-subtitle">Teaching a UR5e robot arm to manipulate objects through imitation learning</p>', unsafe_allow_html=True)
     
+    # Metrics
     st.markdown(f"""
     <div class="metric-row">
         <div class="metric"><div class="metric-value">{data['num_demos']}</div><div class="metric-label">Expert Demos</div></div>
-        <div class="metric"><div class="metric-value">{data['final_loss']:.3f}</div><div class="metric-label">Final Loss</div></div>
+        <div class="metric"><div class="metric-value">{data['final_loss']:.2f}</div><div class="metric-label">Final Loss</div></div>
         <div class="metric"><div class="metric-value">4</div><div class="metric-label">Algorithms</div></div>
+        <div class="metric"><div class="metric-value">7D</div><div class="metric-label">Observation Space</div></div>
     </div>
     """, unsafe_allow_html=True)
     
-    st.subheader("Demo Videos")
-    videos = sorted([f for f in os.listdir('assets/videos') if 'success' in f and f.endswith('.mp4')])
-    if len(videos) >= 2:
-        col1, col2 = st.columns(2)
-        with col1:
-            st.video(f'assets/videos/{videos[0]}')
-        with col2:
-            st.video(f'assets/videos/{videos[1]}')
+    # Demo Videos (Emojis removed)
+    st.markdown('<p class="section-header">Demo Videos</p>', unsafe_allow_html=True)
+    videos = sorted([f for f in os.listdir('assets/videos') if f.endswith('.mp4')])
+    if videos:
+        cols = st.columns(min(3, len(videos)))
+        for i, video in enumerate(videos[:3]):
+            with cols[i]:
+                st.video(f'assets/videos/{video}')
+                st.caption(video.replace('.mp4', '').replace('_', ' ').title())
+    else:
+        st.info("No demo videos found. Run `python sim/expert_demo.py` to generate.")
     
-    st.subheader("Algorithms")
-    col1, col2, col3, col4 = st.columns(4)
+    # Algorithms (Emojis removed)
+    st.markdown('<p class="section-header">Algorithms</p>', unsafe_allow_html=True)
+    col1, col2 = st.columns(2)
     with col1:
-        st.markdown('<div class="card"><h4>Behavior Cloning</h4><p>Supervised learning from demonstrations</p></div>', unsafe_allow_html=True)
+        st.markdown('''
+        <div class="algo-card bc">
+            <h4>Behavior Cloning</h4>
+            <p>Supervised learning that directly maps observations to actions. Fast training, simple implementation.</p>
+        </div>
+        <div class="algo-card dagger">
+            <h4>DAgger</h4>
+            <p>Interactive learning with online expert corrections. Reduces distribution shift by training on visited states.</p>
+        </div>
+        ''', unsafe_allow_html=True)
     with col2:
-        st.markdown('<div class="card"><h4>DAgger</h4><p>Interactive expert corrections</p></div>', unsafe_allow_html=True)
-    with col3:
-        st.markdown('<div class="card"><h4>GAIL</h4><p>Adversarial reward learning</p></div>', unsafe_allow_html=True)
-    with col4:
-        st.markdown('<div class="card"><h4>Diffusion Policy</h4><p>Denoising diffusion for actions</p></div>', unsafe_allow_html=True)
+        st.markdown('''
+        <div class="algo-card gail">
+            <h4>GAIL</h4>
+            <p>Adversarial imitation using a discriminator. Learns implicit reward function from demonstrations.</p>
+        </div>
+        <div class="algo-card diffusion">
+            <h4>Diffusion Policy</h4>
+            <p>Generative modeling via denoising diffusion. Captures multi-modal action distributions.</p>
+        </div>
+        ''', unsafe_allow_html=True)
+    
+    # Project Limitations Section (Lucid & Mature)
+    st.markdown('''
+    <div class="limitations-section">
+        <h4>Project Limitations & Context</h4>
+        <p>While this project demonstrates fundamental concepts of imitation learning, it presents a simplified environment compared to real-world deployment challenges.</p>
+        <ul>
+            <li><strong>Simulation Gap:</strong> The physics simulation (MuJoCo) provides perfect state information and zero-latency control. Real-world robotics must contend with noisy sensors, mechanical imperfections, and significant control delays.</li>
+            <li><strong>Data Scarcity:</strong> The models here attempt to learn from a small dataset (~50-100 episodes). Robust industrial systems typically require thousands of diverse demonstrations or sim-to-real transfer with domain randomization.</li>
+            <li><strong>Generalization:</strong> The learned policies are specialized for this specific bin location and object type. They lack the generalization capabilities of foundation models (like RT-1 or Octo) which can handle novel objects and instructions.</li>
+            <li><strong>Distribution Shift:</strong> Simple Behavior Cloning policies suffer from compounding errors when deviating from the expert's trajectory. While DAgger and Diffusion Policies mitigate this, long-horizon tasks remain a significant research challenge.</li>
+        </ul>
+        <p><em>This codebase serves as an educational sandbox for understanding algorithm mechanics, rather than a production-ready control system.</em></p>
+    </div>
+    ''', unsafe_allow_html=True)
 
 # ============== TRAIN ==============
 elif page == "Train":
@@ -104,14 +199,13 @@ elif page == "Train":
         num_epochs = st.slider("Epochs", min_value=10, max_value=200, value=50, step=10)
         hidden_size = st.select_slider("Hidden Size", options=[64, 128, 256, 512], value=256)
     
-    # Algorithm descriptions
     algo_descriptions = {
-        "Behavior Cloning": "**Supervised Learning** — Trains a neural network to directly map observations to actions by minimizing MSE loss against expert demonstrations. Simple and fast, but may suffer from distribution shift where small errors compound over time.",
-        "DAgger": "**Interactive Learning** — Dataset Aggregation iteratively improves the policy by rolling out the current policy, querying the expert for corrections at each state, and aggregating this data. Reduces distribution shift by training on states the policy actually visits.",
-        "GAIL": "**Adversarial Learning** — Generative Adversarial Imitation Learning uses a discriminator to distinguish expert from policy behavior. The policy learns to fool the discriminator, implicitly learning a reward function from demonstrations.",
-        "Diffusion Policy": "**Generative Modeling** — Uses denoising diffusion to model the action distribution. Adds noise to expert actions during training, then learns to denoise. At inference, iteratively denoises random noise to produce actions. Captures multi-modal action distributions."
+        "Behavior Cloning": "**Supervised Learning** — Trains a neural network to directly map observations to actions by minimizing MSE loss against expert demonstrations.",
+        "DAgger": "**Interactive Learning** — Dataset Aggregation iteratively improves the policy by rolling out the current policy and querying the expert for corrections.",
+        "GAIL": "**Adversarial Learning** — Uses a discriminator to distinguish expert from policy behavior. The policy learns to fool the discriminator.",
+        "Diffusion Policy": "**Generative Modeling** — Uses denoising diffusion to model the action distribution. Captures multi-modal behaviors."
     }
-    st.markdown(f'<div class="card"><p>{algo_descriptions[algorithm]}</p></div>', unsafe_allow_html=True)
+    st.info(algo_descriptions[algorithm])
     
     if st.button("Start Training", type="primary", use_container_width=True):
         st.subheader("Training Progress")
@@ -146,13 +240,13 @@ elif page == "Train":
                 if losses:
                     fig = go.Figure()
                     fig.add_trace(go.Scatter(x=list(range(1, len(losses)+1)), y=losses,
-                                            mode='lines', line=dict(color='#2563eb', width=2)))
+                                            mode='lines', line=dict(color='#667eea', width=2)))
                     fig.update_layout(xaxis_title='Epoch', yaxis_title='Loss', height=300,
                                      margin=dict(l=40, r=20, t=20, b=40))
-                    chart_placeholder.plotly_chart(fig, use_container_width=True, key=f"training_chart_{update.get('epoch', 0)}")
+                    chart_placeholder.plotly_chart(fig, use_container_width=True, key="live_training_chart")
                 
                 if update.get('done'):
-                    st.success(f"Training complete. Model saved.")
+                    st.success("Training complete! Model saved.")
         except Exception as e:
             st.error(f"Error: {e}")
 
@@ -160,15 +254,21 @@ elif page == "Train":
 elif page == "Compare":
     st.title("Algorithm Comparison")
     
+    st.markdown("""
+    <div class="info-banner">
+        <p>Each algorithm has different trade-offs. Behavior Cloning is fastest but may struggle with distribution shift. 
+        DAgger addresses this through interactive learning. GAIL learns implicit rewards. Diffusion Policy handles multi-modal actions.</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
     comparison = {
         'Algorithm': ['Behavior Cloning', 'DAgger', 'GAIL', 'Diffusion Policy'],
         'Type': ['Supervised', 'Interactive', 'Adversarial', 'Generative'],
         'Training Time': ['~30s', '~2min', '~1min', '~45s'],
-        'Final Loss': ['0.04', '0.28', '~1.3', '0.26']
+        'Complexity': ['Low', 'Medium', 'High', 'High']
     }
     st.table(comparison)
     
-    st.subheader("Success Rate")
     st.info("Run `python ml/eval.py` to measure actual success rates. Results vary based on training.")
 
 # ============== RESULTS ==============
@@ -178,11 +278,11 @@ elif page == "Results":
     st.markdown(f"""
     <div class="metric-row">
         <div class="metric"><div class="metric-value">50</div><div class="metric-label">Test Episodes</div></div>
-        <div class="metric"><div class="metric-value">{data['num_transitions']:,}</div><div class="metric-label">Samples</div></div>
+        <div class="metric"><div class="metric-value">{data['num_transitions']:,}</div><div class="metric-label">Training Samples</div></div>
     </div>
     """, unsafe_allow_html=True)
     
-    st.subheader("Episode Videos")
+    st.markdown('<p class="section-header">Episode Videos</p>', unsafe_allow_html=True)
     videos = sorted([f for f in os.listdir('assets/videos') if f.endswith('.mp4')])
     if videos:
         selected = st.selectbox("Select episode", videos)
@@ -190,31 +290,54 @@ elif page == "Results":
 
 # ============== ABOUT ==============
 else:
-    st.title("About")
+    st.title("About This Project")
+    
+    st.markdown("""
+    <div class="info-banner">
+        <p>This project explores imitation learning for robot manipulation. A UR5e robot learns to pick up 
+        a red cube and place it in a green bin by imitating expert demonstrations.</p>
+    </div>
+    """, unsafe_allow_html=True)
     
     col1, col2 = st.columns(2)
     with col1:
-        st.markdown("""
-        <div class="card">
+        st.markdown('''
+        <div class="algo-card bc">
             <h4>The Task</h4>
-            <p>A UR5e robot picks up a red cube and places it in a green bin using learned policies.</p>
+            <p>Pick-and-place: Grasp a cube from a random position on a table and drop it into a target bin.</p>
         </div>
-        <div class="card">
+        <div class="algo-card dagger">
             <h4>Technologies</h4>
-            <p>MuJoCo simulation, PyTorch ML, Jacobian IK control</p>
+            <p>MuJoCo physics simulation, PyTorch neural networks, Jacobian-based IK control</p>
         </div>
-        """, unsafe_allow_html=True)
+        ''', unsafe_allow_html=True)
     with col2:
-        st.markdown("""
-        <div class="card">
-            <h4>Algorithms</h4>
-            <p>BC (supervised), DAgger (interactive), GAIL (adversarial), Diffusion (generative)</p>
+        st.markdown('''
+        <div class="algo-card gail">
+            <h4>Observation Space</h4>
+            <p>7D: Gripper position (3), Cube position (3), Gripper state (1)</p>
         </div>
-        <div class="card">
-            <h4>References</h4>
-            <p>Pomerleau 1988, Ross 2011, Ho 2016, Chi 2023</p>
+        <div class="algo-card diffusion">
+            <h4>Action Space</h4>
+            <p>4D: Target position (3), Grip command (1)</p>
         </div>
-        """, unsafe_allow_html=True)
+        ''', unsafe_allow_html=True)
+    
+    st.markdown("### References")
+    st.markdown("### Recommended Reading")
+    st.markdown("""
+    **1. Foundations & Theory**  
+    [**Underactuated Robotics: Imitation Learning**](https://underactuated.mit.edu/output_feedback.html) — *Russ Tedrake (MIT)*  
+    A rigorous yet accessible textbook chapter explaining the control theory behind Behavior Cloning and its stability challenges.
+
+    **2. DAgger & Distribution Shift**  
+    [**CS285: Deep Reinforcement Learning**](https://rail.eecs.berkeley.edu/deeprlcourse/) — *Sergey Levine (UC Berkeley)*  
+    Lecture notes that intuitively explain why "error compounds" in BC and how algorithm like DAgger (Dataset Aggregation) fix it.
+
+    **3. Modern Generative Approaches**  
+    [**Diffusion Policy Project Page**](https://diffusion-policy.cs.columbia.edu/) — *Chi et al. (Columbia/Toyota)*  
+    Highly visual explanation of using diffusion models for robot control. Excellent figures and video examples of the state-of-the-art.
+    """)
 
 st.sidebar.markdown("---")
-st.sidebar.caption("Streamlit + MuJoCo + PyTorch")
+st.sidebar.caption("MuJoCo + PyTorch + Streamlit")
